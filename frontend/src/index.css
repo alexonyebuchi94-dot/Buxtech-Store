@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0E14;
+  color: #F5F7FA;
+  font-family: 'Inter', sans-serif;
+}
+
+::selection {
+  background: #00D9FF;
+  color: #0A0E14;
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #00D9FF;
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.font-mono-price {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Signature element: animated circuit-trace glow border on product cards */
+.glow-card {
+  position: relative;
+  background: #12171F;
+  border: 1px solid #232B38;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 4px;
+  padding: 1px;
+  background: linear-gradient(120deg, transparent 30%, #00D9FF 50%, transparent 70%);
+  background-size: 250% 250%;
+  background-position: 0% 0%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.glow-card:hover {
+  transform: translateY(-3px);
+  border-color: #00D9FF;
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+  animation: trace 1.8s linear infinite;
+}
+
+@keyframes trace {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+/* Hero: circuit grid background */
+.circuit-grid {
+  background-image:
+    linear-gradient(rgba(0, 217, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 40%, transparent 90%);
+}
+
+/* Hero: drifting glow orbs */
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(40px, -30px); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-30px, 40px); }
+}
+.orb-drift-1 { animation: drift1 12s ease-in-out infinite; }
+.orb-drift-2 { animation: drift2 14s ease-in-out infinite; }
+
+/* Hero: top scan line */
+@keyframes scan {
+  0% { transform: translateY(0); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: translateY(90vh); opacity: 0; }
+}
+.scan-line {
+  animation: scan 5s linear infinite;
+}
+
+/* Small pulsing status dot */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.5); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(0, 217, 255, 0); }
+}
+.pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+
+/* Glow pulse behind hero image */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.pulse-glow { animation: pulseGlow 4s ease-in-out infinite; }
+
+/* Slow float for hero product image */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.float-slow { animation: floatSlow 6s ease-in-out infinite; }
+
+/* Headline entrance */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-up { animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Hero image bounces into place on load */
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.7) translateY(30px); }
+  60% { opacity: 1; transform: scale(1.05) translateY(-8px); }
+  80% { transform: scale(0.98) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.bounce-in { animation: bounceIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.2s; }
+
+/* Glowing text */
+.text-glow {
+  text-shadow: 0 0 20px rgba(0, 217, 255, 0.6), 0 0 40px rgba(0, 217, 255, 0.3);
+}
+
+/* Product card cursor-follow tilt */
+.tilt-card {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-card:hover::before {
+    animation: none;
+    opacity: 1;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .orb-drift-1, .orb-drift-2, .scan-line, .pulse-dot,
+  .pulse-glow, .float-slow, .reveal-up {
+    animation: none;
+  }
+}
