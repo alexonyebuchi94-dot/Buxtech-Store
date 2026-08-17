@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://buxtech.com.ng/</loc></url>
+  <url><loc>https://buxtech.com.ng/category/kitchen</loc></url>
+  <url><loc>https://buxtech.com.ng/category/laptops</loc></url>
+  <url><loc>https://buxtech.com.ng/category/phones</loc></url>
+  <url><loc>https://buxtech.com.ng/about</loc></url>
+  <url><loc>https://buxtech.com.ng/contact</loc></url>
+  <!-- Generate product URLs dynamically from your products table in production -->
+</urlset>

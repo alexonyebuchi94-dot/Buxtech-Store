@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://buxtech.com.ng/sitemap.xml
