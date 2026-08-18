@@ -20,7 +20,7 @@ router.get('/', (req, res) => {
 
 // POST /api/products — create a new product (admin only)
 router.post('/', requireAdmin, (req, res) => {
-  const { name, category, price, stock, images, description, featured, keywords, weight, sku, brand } = req.body
+  const { name, category, price, stock, images, description, featured, keywords, weight, sku, brand, keyFeatures } = req.body
   if (!name || !category || price == null) {
     return res.status(400).json({ error: 'Missing required fields: name, category, price' })
   }
@@ -36,6 +36,7 @@ router.post('/', requireAdmin, (req, res) => {
     weight: weight === '' || weight == null ? null : Number(weight),
     sku: sku || '',
     brand: brand || '',
+    keyFeatures: parseLines(keyFeatures),
   })
   res.status(201).json(product)
 })
@@ -47,10 +48,18 @@ function parseKeywords(keywords) {
   return []
 }
 
+// Accepts either an array of lines or a newline-separated string (key features, one per line)
+function parseLines(value) {
+  if (Array.isArray(value)) return value.map((v) => v.trim()).filter(Boolean)
+  if (typeof value === 'string') return value.split('\n').map((v) => v.trim()).filter(Boolean)
+  return []
+}
+
 // PUT /api/products/:id — update a product (admin only)
 router.put('/:id', requireAdmin, (req, res) => {
   const data = { ...req.body }
   if ('keywords' in data) data.keywords = parseKeywords(data.keywords)
+  if ('keyFeatures' in data) data.keyFeatures = parseLines(data.keyFeatures)
   if ('weight' in data) data.weight = data.weight === '' || data.weight == null ? null : Number(data.weight)
   const updated = updateProduct(req.params.id, data)
   if (!updated) return res.status(404).json({ error: 'Product not found' })

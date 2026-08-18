@@ -33,6 +33,7 @@ seed.forEach((p, i) => {
     weight: null, // kg
     sku: '',
     brand: '',
+    keyFeatures: [],
     ...rest,
   })
 })

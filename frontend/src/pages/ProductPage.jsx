@@ -161,6 +161,17 @@ export default function ProductPage() {
           </div>
           <p className="text-muted leading-relaxed mb-6">{product.description}</p>
 
+          {Array.isArray(product.keyFeatures) && product.keyFeatures.length > 0 && (
+            <ul className="mb-6 space-y-2">
+              {product.keyFeatures.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-muted">
+                  <span className="text-cyan mt-1">●</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
           <div className="text-sm text-muted mb-6">
             {product.stock > 0 ? (
               <span className="text-cyan">In stock — {product.stock} available</span>

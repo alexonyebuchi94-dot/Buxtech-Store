@@ -20,6 +20,7 @@ const emptyForm = {
   weight: '',
   sku: '',
   brand: '',
+  keyFeatures: '',
 }
 
 export default function AdminProducts() {
@@ -72,6 +73,7 @@ export default function AdminProducts() {
       weight: product.weight ?? '',
       sku: product.sku || '',
       brand: product.brand || '',
+      keyFeatures: Array.isArray(product.keyFeatures) ? product.keyFeatures.join('\n') : '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -259,6 +261,22 @@ export default function AdminProducts() {
               onChange={handleChange}
               className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
             />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm text-muted block mb-1">
+              Key Features <span className="text-xs">(one per line)</span>
+            </label>
+            <textarea
+              rows={4}
+              name="keyFeatures"
+              value={form.keyFeatures}
+              onChange={handleChange}
+              placeholder={'e.g.\n1200W high-torque motor\n8 preset cooking programs\nDishwasher-safe basket'}
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+            <p className="text-xs text-muted mt-1">
+              Shown as a bullet list on the product page, separate from the description.
+            </p>
           </div>
         </div>
 

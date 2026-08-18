@@ -7,9 +7,54 @@ import { useState, useRef } from 'react'
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
+const MAX_DIMENSION = 1600 // px — plenty for product photos, much smaller upload than raw phone camera photos
+const JPEG_QUALITY = 0.82
+
+// Resizes/compresses an image file in the browser before upload — phone
+// camera photos are often 4000px+ and several MB, which is what makes
+// "Add Photos" feel slow. This cuts most files down to a few hundred KB.
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+      resolve(file) // don't touch non-raster files
+      return
+    }
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      let { width, height } = img
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const scale = MAX_DIMENSION / Math.max(width, height)
+        width = Math.round(width * scale)
+        height = Math.round(height * scale)
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return resolve(file) // fall back to original on failure
+          resolve(new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' }))
+        },
+        'image/jpeg',
+        JPEG_QUALITY
+      )
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(file) // fall back to original if it can't be read
+    }
+    img.src = objectUrl
+  })
+}
+
 async function uploadOne(file) {
+  const compressed = await compressImage(file)
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', compressed)
   formData.append('upload_preset', UPLOAD_PRESET)
 
   const res = await fetch(
@@ -23,6 +68,7 @@ async function uploadOne(file) {
 
 export default function ImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false)
+  const [uploadCount, setUploadCount] = useState({ done: 0, total: 0 })
   const [error, setError] = useState('')
   const [urlInput, setUrlInput] = useState('')
   const fileInputRef = useRef(null)
@@ -32,15 +78,21 @@ export default function ImageUploader({ images = [], onChange }) {
     if (files.length === 0) return
 
     if (!CLOUD_NAME || !UPLOAD_PRESET) {
-      setError('Image upload isn\'t set up yet — paste an image URL below instead for now.')
+      setError('Image upload isn\'t set up yet (Cloudinary not configured) — paste an image URL below instead for now.')
       return
     }
 
     setUploading(true)
+    setUploadCount({ done: 0, total: files.length })
     setError('')
 
     try {
-      const uploaded = await Promise.all(files.map(uploadOne))
+      const uploaded = []
+      for (const file of files) {
+        const url = await uploadOne(file)
+        uploaded.push(url)
+        setUploadCount((c) => ({ ...c, done: c.done + 1 }))
+      }
       onChange([...images, ...uploaded])
     } catch (err) {
       setError(err.message || 'Upload failed — try again')
@@ -95,9 +147,9 @@ export default function ImageUploader({ images = [], onChange }) {
           disabled={uploading}
           className="border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan disabled:opacity-50"
         >
-          {uploading ? 'Uploading…' : 'Add Photos'}
+          {uploading ? `Uploading ${uploadCount.done}/${uploadCount.total}…` : 'Add Photos'}
         </button>
-        <span className="text-muted text-xs">You can select several at once — first photo is the main one</span>
+        <span className="text-muted text-xs">You can select several at once — first photo is the main one. Photos are auto-compressed before upload.</span>
       </div>
 
       <input
@@ -126,7 +178,11 @@ export default function ImageUploader({ images = [], onChange }) {
         </button>
       </div>
 
-      {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+      {error && (
+        <div className="border border-red-500/40 bg-red-500/10 text-red-300 text-sm rounded p-3 mt-3">
+          {error}
+        </div>
+      )}
     </div>
   )
 }
