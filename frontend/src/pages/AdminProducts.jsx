@@ -13,9 +13,13 @@ const emptyForm = {
   category: 'kitchen-appliances',
   price: '',
   stock: '',
-  image: '',
+  images: [],
   description: '',
   featured: false,
+  keywords: '',
+  weight: '',
+  sku: '',
+  brand: '',
 }
 
 export default function AdminProducts() {
@@ -61,9 +65,13 @@ export default function AdminProducts() {
       category: product.category,
       price: product.price,
       stock: product.stock,
-      image: product.image,
+      images: product.images || (product.image ? [product.image] : []),
       description: product.description || '',
       featured: !!product.featured,
+      keywords: Array.isArray(product.keywords) ? product.keywords.join(', ') : '',
+      weight: product.weight ?? '',
+      sku: product.sku || '',
+      brand: product.brand || '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -75,6 +83,10 @@ export default function AdminProducts() {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    if (form.images.length === 0) {
+      setError('Add at least one product photo')
+      return
+    }
     setSaving(true)
     setError('')
     try {
@@ -172,6 +184,56 @@ export default function AdminProducts() {
             />
           </div>
           <div>
+            <label className="text-sm text-muted block mb-1">Weight (kg)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              name="weight"
+              value={form.weight}
+              onChange={handleChange}
+              placeholder="e.g. 1.5"
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted block mb-1">SKU</label>
+            <input
+              type="text"
+              name="sku"
+              value={form.sku}
+              onChange={handleChange}
+              placeholder="e.g. BX-AF-5500"
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-muted block mb-1">Brand</label>
+            <input
+              type="text"
+              name="brand"
+              value={form.brand}
+              onChange={handleChange}
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm text-muted block mb-1">
+              SEO Keywords <span className="text-xs">(comma-separated)</span>
+            </label>
+            <input
+              type="text"
+              name="keywords"
+              value={form.keywords}
+              onChange={handleChange}
+              placeholder="e.g. air fryer, oil-free frying, kitchen appliance Nigeria"
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+            <p className="text-xs text-muted mt-1">
+              Used in this product's page title, meta description, and search engine tags.
+            </p>
+          </div>
+          <div>
             <label className="text-sm text-muted block mb-1 flex items-center gap-2">
               <input
                 type="checkbox"
@@ -184,8 +246,8 @@ export default function AdminProducts() {
           </div>
           <div className="col-span-2">
             <ImageUploader
-              value={form.image}
-              onChange={(url) => setForm({ ...form, image: url })}
+              images={form.images}
+              onChange={(images) => setForm({ ...form, images })}
             />
           </div>
           <div className="col-span-2">
@@ -226,7 +288,7 @@ export default function AdminProducts() {
         <div className="space-y-3">
           {products.map((p) => (
             <div key={p.id} className="flex items-center gap-4 border border-border rounded-lg p-4 bg-surface">
-              <img src={p.image} alt={p.name} className="w-16 h-16 object-cover rounded flex-shrink-0" />
+              <img src={p.images?.[0] || p.image} alt={p.name} className="w-16 h-16 object-cover rounded flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-ink font-medium truncate">{p.name}</div>
                 <div className="text-muted text-xs">

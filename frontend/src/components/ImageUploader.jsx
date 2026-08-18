@@ -1,20 +1,35 @@
 import { useState, useRef } from 'react'
 
-// Uploads an image file directly to Cloudinary using an unsigned upload preset,
-// and returns the hosted image URL. Requires VITE_CLOUDINARY_CLOUD_NAME and
-// VITE_CLOUDINARY_UPLOAD_PRESET to be set (see .env.example).
+// Uploads one or more image files directly to Cloudinary using an unsigned
+// upload preset, and returns an array of hosted image URLs.
+// Requires VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET.
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
-export default function ImageUploader({ value, onChange }) {
+async function uploadOne(file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('upload_preset', UPLOAD_PRESET)
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    { method: 'POST', body: formData }
+  )
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error?.message || 'Upload failed')
+  return data.secure_url
+}
+
+export default function ImageUploader({ images = [], onChange }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+  const [urlInput, setUrlInput] = useState('')
   const fileInputRef = useRef(null)
 
   async function handleFileSelect(e) {
-    const file = e.target.files[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
     if (!CLOUD_NAME || !UPLOAD_PRESET) {
       setError('Image upload isn\'t set up yet — paste an image URL below instead for now.')
@@ -25,19 +40,8 @@ export default function ImageUploader({ value, onChange }) {
     setError('')
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('upload_preset', UPLOAD_PRESET)
-
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        { method: 'POST', body: formData }
-      )
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.error?.message || 'Upload failed')
-
-      onChange(data.secure_url)
+      const uploaded = await Promise.all(files.map(uploadOne))
+      onChange([...images, ...uploaded])
     } catch (err) {
       setError(err.message || 'Upload failed — try again')
     } finally {
@@ -46,50 +50,81 @@ export default function ImageUploader({ value, onChange }) {
     }
   }
 
+  function removeImage(index) {
+    onChange(images.filter((_, i) => i !== index))
+  }
+
+  function addUrl() {
+    if (!urlInput.trim()) return
+    onChange([...images, urlInput.trim()])
+    setUrlInput('')
+  }
+
   return (
     <div>
-      <label className="text-sm text-muted block mb-1">Product Image</label>
+      <label className="text-sm text-muted block mb-2">
+        Product Photos {images.length > 0 && `(${images.length})`}
+      </label>
 
-      {value && (
-        <div className="mb-3 relative w-32 h-32">
-          <img src={value} alt="Preview" className="w-32 h-32 object-cover rounded border border-border" />
-          <button
-            type="button"
-            onClick={() => onChange('')}
-            className="absolute -top-2 -right-2 bg-surface border border-border rounded-full w-6 h-6 flex items-center justify-center text-muted hover:text-red-400"
-          >
-            ×
-          </button>
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-3 mb-3">
+          {images.map((url, i) => (
+            <div key={i} className="relative w-24 h-24">
+              <img src={url} alt={`Product ${i + 1}`} className="w-24 h-24 object-cover rounded border border-border" />
+              {i === 0 && (
+                <span className="absolute bottom-1 left-1 bg-cyan text-base text-[10px] font-medium px-1.5 py-0.5 rounded">
+                  MAIN
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => removeImage(i)}
+                className="absolute -top-2 -right-2 bg-surface border border-border rounded-full w-6 h-6 flex items-center justify-center text-muted hover:text-red-400"
+              >
+                ×
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center flex-wrap">
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className="border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan disabled:opacity-50"
         >
-          {uploading ? 'Uploading…' : value ? 'Change Photo' : 'Upload Photo'}
+          {uploading ? 'Uploading…' : 'Add Photos'}
         </button>
-        <span className="text-muted text-xs">or paste a URL below</span>
+        <span className="text-muted text-xs">You can select several at once — first photo is the main one</span>
       </div>
 
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleFileSelect}
         className="hidden"
       />
 
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="https://..."
-        className="w-full mt-3 bg-base border border-border rounded px-4 py-3 text-sm text-ink focus:border-cyan outline-none"
-      />
+      <div className="flex gap-2 mt-3">
+        <input
+          type="text"
+          value={urlInput}
+          onChange={(e) => setUrlInput(e.target.value)}
+          placeholder="Or paste an image URL…"
+          className="flex-1 bg-base border border-border rounded px-4 py-2.5 text-sm text-ink focus:border-cyan outline-none"
+        />
+        <button
+          type="button"
+          onClick={addUrl}
+          className="border border-border rounded px-4 py-2.5 text-sm text-ink hover:border-cyan"
+        >
+          Add
+        </button>
+      </div>
 
       {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
     </div>

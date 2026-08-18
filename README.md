@@ -40,18 +40,65 @@ Runs on http://localhost:5173
 3. Put it in `backend/.env` as `PAYSTACK_SECRET_KEY`
 4. Test payments use Paystack's test cards: https://paystack.com/docs/payments/test-payments
 
+## Customer accounts (signup, login, Google Sign-In)
+
+Customers can now create an account with email/password, or sign in with
+Google. This needs two things set up:
+
+**1. MongoDB Atlas (so accounts persist)**
+- Create a free cluster at https://www.mongodb.com/atlas — the free tier is enough
+- Database Access → add a database user with a password
+- Network Access → allow access from anywhere (`0.0.0.0/0`) so Render can connect
+- Get your connection string (Connect → Drivers) and put it in `backend/.env` as `MONGODB_URI`
+- If `MONGODB_URI` is left unset, signup/login still work for local testing, but
+  accounts are stored in memory and disappear whenever the server restarts —
+  don't ship to real customers without this set.
+
+**2. JWT secret (signs customer login sessions)**
+- Generate a random string: `openssl rand -base64 32`
+- Put it in `backend/.env` as `JWT_SECRET`
+
+**3. Google Sign-In**
+- Go to https://console.cloud.google.com/apis/credentials
+- Create a project (or use an existing one) → **Create Credentials → OAuth client ID**
+- Application type: **Web application**
+- Under **Authorized JavaScript origins**, add both:
+  - `http://localhost:5173` (local dev)
+  - your live Vercel URL (e.g. `https://buxtech-store.vercel.app`)
+- Copy the generated **Client ID** and put it in:
+  - `backend/.env` as `GOOGLE_CLIENT_ID`
+  - `frontend/.env` as `VITE_GOOGLE_CLIENT_ID`
+- Until this is set, the Google button on the Login/Signup pages will show
+  an error when clicked — email/password signup works either way.
+
+## SEO
+
+- Every main page (`Home`, `Shop`, `About`, `Contact`, product pages) sets its
+  own title, meta description, and Open Graph/Twitter tags via the `<SEO />`
+  component in `frontend/src/components/SEO.jsx`.
+- Product pages also output `Product` structured data (JSON-LD) so search
+  engines can show price/availability/brand directly in results.
+- Each product now has a **Keywords** field (set from the admin panel) —
+  it feeds that product's meta keywords tag and is also searchable from
+  the Shop page's search bar.
+- `frontend/public/sitemap.xml` and `robots.txt` are already in place;
+  update the sitemap if you add new static pages. Product pages aren't
+  in the sitemap automatically since they're dynamic — for real SEO
+  benefit, consider generating it server-side once you have a fixed
+  product catalog and domain.
+
 ## Deploying
 
 **Backend → Render**
 1. Push this repo to GitHub
 2. New Web Service on Render, point it at `/backend`
 3. Build command: `npm install` — Start command: `npm start`
-4. Add environment variables: `PAYSTACK_SECRET_KEY`, `FRONTEND_URL` (your Vercel URL once you have it), `PORT` (Render sets this automatically, safe to leave out)
+4. Add environment variables: `PAYSTACK_SECRET_KEY`, `FRONTEND_URL` (your Vercel URL once you have it), `PORT` (Render sets this automatically, safe to leave out), `MONGODB_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`
 
 **Frontend → Vercel**
 1. New Project on Vercel, point it at `/frontend`
 2. Framework preset: Vite
-3. Add environment variable: `VITE_API_BASE_URL` = your Render backend URL
+3. Add environment variable: `VITE_API_BASE_URL` = your Render backend URL, plus `VITE_GOOGLE_CLIENT_ID`
 4. Deploy
 
 Once both are live, update `FRONTEND_URL` on Render to match your real

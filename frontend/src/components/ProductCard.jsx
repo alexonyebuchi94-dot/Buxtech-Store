@@ -37,7 +37,7 @@ export default function ProductCard({ product }) {
       <Link to={`/product/${product.id}`} className="block">
         <div className="aspect-square overflow-hidden bg-base">
           <img
-            src={product.image}
+            src={product.images?.[0] || product.image}
             alt={product.name}
             className="w-full h-full object-cover"
             loading="lazy"

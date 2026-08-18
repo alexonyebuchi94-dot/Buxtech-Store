@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { categories } from '../data/products.js'
 import Logo from './Logo.jsx'
 
 export default function Navbar() {
   const { itemCount } = useCart()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
@@ -120,6 +122,14 @@ export default function Navbar() {
             )}
           </Link>
 
+          <Link
+            to={user ? '/account' : '/login'}
+            onClick={closeMenus}
+            className="hidden sm:flex items-center gap-2 border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan transition-colors whitespace-nowrap"
+          >
+            {user ? user.name.split(' ')[0] : 'Log In'}
+          </Link>
+
           {/* Mobile hamburger toggle */}
           <button
             type="button"
@@ -191,8 +201,11 @@ export default function Navbar() {
           </div>
 
           <NavLink to="/about" className={mobileLinkClass} onClick={closeMenus}>About</NavLink>
-          <NavLink to="/contact" className={`${mobileLinkClass({ isActive: false })} border-b-0`} onClick={closeMenus}>
+          <NavLink to="/contact" className={mobileLinkClass} onClick={closeMenus}>
             Contact
+          </NavLink>
+          <NavLink to={user ? '/account' : '/login'} className={`${mobileLinkClass({ isActive: false })} border-b-0`} onClick={closeMenus}>
+            {user ? user.name.split(' ')[0] : 'Log In'}
           </NavLink>
         </div>
       )}
