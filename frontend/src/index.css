@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0E14;
+  color: #F5F7FA;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+::selection {
+  background: #00D9FF;
+  color: #0A0E14;
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #00D9FF;
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.font-mono-price {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Signature element: animated circuit-trace glow border on product cards */
+.glow-card {
+  position: relative;
+  background: #12171F;
+  border: 1px solid #232B38;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 4px;
+  padding: 1px;
+  background: linear-gradient(120deg, transparent 30%, #00D9FF 50%, transparent 70%);
+  background-size: 250% 250%;
+  background-position: 0% 0%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.glow-card:hover {
+  transform: translateY(-3px);
+  border-color: #00D9FF;
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+  animation: trace 1.8s linear infinite;
+}
+
+@keyframes trace {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-card:hover::before {
+    animation: none;
+    opacity: 1;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
