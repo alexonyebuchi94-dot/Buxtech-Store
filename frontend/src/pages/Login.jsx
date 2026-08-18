@@ -1,30 +1,23 @@
 import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { GoogleLogin } from '@react-oauth/google'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
-import SEO from '../components/SEO.jsx'
+import GoogleSignInButton from '../components/GoogleSignInButton.jsx'
 
 export default function Login() {
-  const { login, loginWithGoogle } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
-  const redirectTo = location.state?.from || '/'
-
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      await login(form)
-      navigate(redirectTo, { replace: true })
+      await login(email, password)
+      navigate('/account')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -32,72 +25,49 @@ export default function Login() {
     }
   }
 
-  async function handleGoogleSuccess(credentialResponse) {
-    setError('')
-    try {
-      await loginWithGoogle(credentialResponse.credential)
-      navigate(redirectTo, { replace: true })
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
   return (
-    <div className="max-w-sm mx-auto px-6 py-24">
-      <SEO
-        title="Log In — BuxTech"
-        description="Log in to your BuxTech account to track orders and check out faster."
-        noindex
-      />
-      <h1 className="font-display text-3xl text-ink mb-8 tracking-wide text-center">
-        LOG IN
-      </h1>
+    <div className="max-w-sm mx-auto px-6 py-20">
+      <h1 className="font-display text-4xl text-ink mb-8 tracking-wide text-center">SIGN IN</h1>
 
-      <div className="flex justify-center mb-6">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError('Google sign-in failed')}
-        />
+      <div className="mb-6">
+        <GoogleSignInButton onError={setError} />
       </div>
 
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-xs text-muted">OR</span>
+        <span className="text-muted text-xs">OR</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
-          type="email"
-          name="email"
           required
-          value={form.email}
-          onChange={handleChange}
+          type="email"
           placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
         />
         <input
-          type="password"
-          name="password"
           required
-          value={form.password}
-          onChange={handleChange}
+          type="password"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
         />
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-cyan text-base font-semibold py-3 rounded shadow-glow hover:shadow-glowStrong transition-shadow disabled:opacity-50"
+          className="w-full bg-cyan text-base font-semibold py-3 rounded shadow-glow disabled:opacity-50"
         >
-          {loading ? 'Logging in…' : 'Log In'}
+          {loading ? 'Signing in…' : 'Sign In'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-muted mt-6">
-        Don't have an account?{' '}
-        <Link to="/signup" className="text-cyan hover:underline">Sign up</Link>
+      <p className="text-muted text-sm text-center mt-6">
+        No account? <Link to="/signup" className="text-cyan hover:underline">Sign up</Link>
       </p>
     </div>
   )

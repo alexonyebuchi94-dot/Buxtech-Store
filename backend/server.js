@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import { connectDB } from './lib/db.js'
 import productsRouter from './routes/products.js'
 import ordersRouter from './routes/orders.js'
 import paymentRouter from './routes/payment.js'
@@ -27,8 +26,6 @@ app.use('/api/auth', authRouter)
 
 const PORT = process.env.PORT || 5000
 
-connectDB().finally(() => {
-  app.listen(PORT, () => {
-    console.log(`BuxTech backend running on port ${PORT}`)
-  })
+app.listen(PORT, () => {
+  console.log(`BuxTech backend running on port ${PORT}`)
 })

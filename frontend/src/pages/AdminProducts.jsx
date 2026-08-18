@@ -15,11 +15,9 @@ const emptyForm = {
   stock: '',
   images: [],
   description: '',
-  featured: false,
   keywords: '',
   weight: '',
-  sku: '',
-  brand: '',
+  featured: false,
 }
 
 export default function AdminProducts() {
@@ -67,11 +65,9 @@ export default function AdminProducts() {
       stock: product.stock,
       images: product.images || (product.image ? [product.image] : []),
       description: product.description || '',
+      keywords: product.keywords || '',
+      weight: product.weight || '',
       featured: !!product.featured,
-      keywords: Array.isArray(product.keywords) ? product.keywords.join(', ') : '',
-      weight: product.weight ?? '',
-      sku: product.sku || '',
-      brand: product.brand || '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -187,51 +183,14 @@ export default function AdminProducts() {
             <label className="text-sm text-muted block mb-1">Weight (kg)</label>
             <input
               type="number"
+              step="0.1"
               min="0"
-              step="0.01"
               name="weight"
               value={form.weight}
               onChange={handleChange}
-              placeholder="e.g. 1.5"
+              placeholder="e.g. 2.5"
               className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
             />
-          </div>
-          <div>
-            <label className="text-sm text-muted block mb-1">SKU</label>
-            <input
-              type="text"
-              name="sku"
-              value={form.sku}
-              onChange={handleChange}
-              placeholder="e.g. BX-AF-5500"
-              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-muted block mb-1">Brand</label>
-            <input
-              type="text"
-              name="brand"
-              value={form.brand}
-              onChange={handleChange}
-              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="text-sm text-muted block mb-1">
-              SEO Keywords <span className="text-xs">(comma-separated)</span>
-            </label>
-            <input
-              type="text"
-              name="keywords"
-              value={form.keywords}
-              onChange={handleChange}
-              placeholder="e.g. air fryer, oil-free frying, kitchen appliance Nigeria"
-              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
-            />
-            <p className="text-xs text-muted mt-1">
-              Used in this product's page title, meta description, and search engine tags.
-            </p>
           </div>
           <div>
             <label className="text-sm text-muted block mb-1 flex items-center gap-2">
@@ -257,6 +216,18 @@ export default function AdminProducts() {
               name="description"
               value={form.description}
               onChange={handleChange}
+              className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="text-sm text-muted block mb-1">
+              Search Keywords <span className="text-xs">(comma-separated, helps customers find this in search)</span>
+            </label>
+            <input
+              name="keywords"
+              value={form.keywords}
+              onChange={handleChange}
+              placeholder="e.g. air fryer, kitchen, oil-free, digital"
               className="w-full bg-base border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
             />
           </div>

@@ -19,6 +19,12 @@ export function getAllOrders() {
   )
 }
 
+export function getOrdersByEmail(email) {
+  return getAllOrders().filter(
+    (o) => o.customer.email.toLowerCase() === email.toLowerCase()
+  )
+}
+
 export function updateOrderStatus(id, status) {
   const order = orders.get(id)
   if (!order) return null

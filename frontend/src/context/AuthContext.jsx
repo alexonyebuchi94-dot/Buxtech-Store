@@ -1,12 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import * as authApi from '../api/auth.js'
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 const AuthContext = createContext(null)
-const TOKEN_KEY = 'buxtech_customer_token'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
+  const [token, setToken] = useState(() => sessionStorage.getItem('buxtech_customer_token'))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -14,49 +13,66 @@ export function AuthProvider({ children }) {
       setLoading(false)
       return
     }
-    authApi
-      .fetchMe(token)
+    fetch(`${API_BASE}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => setUser(data.user))
       .catch(() => {
-        localStorage.removeItem(TOKEN_KEY)
         setToken(null)
+        sessionStorage.removeItem('buxtech_customer_token')
       })
       .finally(() => setLoading(false))
   }, [token])
 
-  function applySession(data) {
-    localStorage.setItem(TOKEN_KEY, data.token)
+  function handleAuthSuccess(data) {
     setToken(data.token)
     setUser(data.user)
+    sessionStorage.setItem('buxtech_customer_token', data.token)
   }
 
-  async function signup(form) {
-    const data = await authApi.signup(form)
-    applySession(data)
-    return data.user
+  async function register(name, email, password) {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Could not create account')
+    handleAuthSuccess(data)
   }
 
-  async function login(form) {
-    const data = await authApi.login(form)
-    applySession(data)
-    return data.user
+  async function login(email, password) {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Could not sign in')
+    handleAuthSuccess(data)
   }
 
   async function loginWithGoogle(credential) {
-    const data = await authApi.googleLogin(credential)
-    applySession(data)
-    return data.user
+    const res = await fetch(`${API_BASE}/api/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Google sign-in failed')
+    handleAuthSuccess(data)
   }
 
   function logout() {
-    localStorage.removeItem(TOKEN_KEY)
-    setToken(null)
     setUser(null)
+    setToken(null)
+    sessionStorage.removeItem('buxtech_customer_token')
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, signup, login, loginWithGoogle, logout }}
+      value={{ user, token, loading, register, login, loginWithGoogle, logout }}
     >
       {children}
     </AuthContext.Provider>

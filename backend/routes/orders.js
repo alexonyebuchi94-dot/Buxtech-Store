@@ -1,9 +1,15 @@
 import express from 'express'
 import { nanoid } from 'nanoid'
-import { createOrder, getOrder, getAllOrders } from '../data/orderStore.js'
+import { createOrder, getOrder, getAllOrders, getOrdersByEmail } from '../data/orderStore.js'
 import { requireAdmin } from '../middleware/auth.js'
+import { requireCustomer } from './auth.js'
 
 const router = express.Router()
+
+// GET /api/orders/mine — order history for the signed-in customer
+router.get('/mine', requireCustomer, (req, res) => {
+  res.json(getOrdersByEmail(req.customer.email))
+})
 
 // GET /api/orders/admin/all — list every order (admin only)
 router.get('/admin/all', requireAdmin, (req, res) => {

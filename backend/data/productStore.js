@@ -25,16 +25,7 @@ seed.forEach((p, i) => {
   const id = nanoid(8)
   const featuredIndexes = [0, 1, 5, 6, 8, 9] // matches original hand-picked featured items
   const { image, ...rest } = p
-  products.set(id, {
-    id,
-    featured: featuredIndexes.includes(i),
-    images: [image],
-    keywords: [],
-    weight: null, // kg
-    sku: '',
-    brand: '',
-    ...rest,
-  })
+  products.set(id, { id, featured: featuredIndexes.includes(i), images: [image], ...rest })
 })
 
 export function getAllProducts() {
