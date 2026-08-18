@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import SEO from '../components/SEO.jsx'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
@@ -29,6 +30,11 @@ export default function Contact() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-20">
+      <SEO
+        title="Contact Us — BuxTech"
+        description="Get in touch with BuxTech for order questions, product help, or delivery support."
+        path="/contact"
+      />
       <h1 className="font-display text-5xl text-ink mb-8 tracking-wide">CONTACT US</h1>
       <p className="text-muted mb-6">
         Questions about an order, a product, or delivery? Reach us directly or send a message below.

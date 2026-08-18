@@ -5,6 +5,7 @@ import { fetchReviews, submitReview } from '../api/reviews.js'
 import { useCart } from '../context/CartContext.jsx'
 import StarRating from '../components/StarRating.jsx'
 import ProductCard from '../components/ProductCard.jsx'
+import SEO from '../components/SEO.jsx'
 
 function formatNaira(amount) {
   return `₦${amount.toLocaleString('en-NG')}`
@@ -95,6 +96,28 @@ export default function ProductPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-16">
+      <SEO
+        title={`${product.name} — BuxTech`}
+        description={product.description ? product.description.slice(0, 160) : `Buy ${product.name} at BuxTech.`}
+        keywords={Array.isArray(product.keywords) ? product.keywords.join(', ') : undefined}
+        path={`/product/${product.id}`}
+        image={(product.images && product.images[0]) || product.image}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: product.images || [product.image],
+          brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
+          sku: product.sku || undefined,
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'NGN',
+            price: product.price,
+            availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          },
+        }}
+      />
       <div className="grid md:grid-cols-2 gap-12">
         <div>
           <div className="rounded-lg overflow-hidden border border-border bg-surface aspect-square mb-3">
@@ -145,6 +168,16 @@ export default function ProductPage() {
               <span className="text-red-400">Out of stock</span>
             )}
           </div>
+
+          {(product.brand || product.weight || product.sku) && (
+            <div className="text-sm text-muted mb-6 space-y-1">
+              {product.brand && <div>Brand: <span className="text-ink">{product.brand}</span></div>}
+              {product.weight != null && product.weight !== '' && (
+                <div>Weight: <span className="text-ink">{product.weight} kg</span></div>
+              )}
+              {product.sku && <div>SKU: <span className="text-ink">{product.sku}</span></div>}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 mb-6">
             <span className="text-sm text-muted">Quantity</span>

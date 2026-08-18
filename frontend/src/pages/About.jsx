@@ -1,6 +1,13 @@
+import SEO from '../components/SEO.jsx'
+
 export default function About() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-20">
+      <SEO
+        title="About Us — BuxTech"
+        description="Learn about BuxTech — trusted kitchen appliances, electronics, and gadgets, delivered across Nigeria."
+        path="/about"
+      />
       <h1 className="font-display text-5xl text-ink mb-8 tracking-wide">ABOUT BUXTECH</h1>
       <div className="space-y-5 text-muted leading-relaxed">
         <p>

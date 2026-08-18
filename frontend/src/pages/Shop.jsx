@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { categories } from '../data/products.js'
 import { fetchProducts } from '../api/products.js'
 import ProductCard from '../components/ProductCard.jsx'
+import SEO from '../components/SEO.jsx'
 
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -26,7 +27,7 @@ export default function Shop() {
       (p) =>
         p.name.toLowerCase().includes(q) ||
         (p.description || '').toLowerCase().includes(q) ||
-        (p.keywords || '').toLowerCase().includes(q)
+        (Array.isArray(p.keywords) && p.keywords.some((k) => k.toLowerCase().includes(q)))
     )
   }
 
@@ -41,6 +42,11 @@ export default function Shop() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
+      <SEO
+        title="Shop All Products — BuxTech"
+        description="Browse kitchen appliances, electronics, and laptop & desktop gadgets at BuxTech, delivered across Nigeria."
+        path="/shop"
+      />
       <h1 className="font-display text-4xl text-ink mb-8 tracking-wide">SHOP</h1>
 
       {searchQuery && (

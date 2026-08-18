@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext.jsx'
-import { useAuth } from '../context/AuthContext.jsx'
 
 function formatNaira(amount) {
   return `₦${amount.toLocaleString('en-NG')}`
@@ -26,13 +25,12 @@ function getDeliveryFee(state) {
 
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart()
-  const { user } = useAuth()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: '',
+    email: '',
     phone: '',
     address: '',
     city: '',

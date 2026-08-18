@@ -1,11 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext.jsx'
-import GoogleSignInButton from '../components/GoogleSignInButton.jsx'
+import SEO from '../components/SEO.jsx'
+
+const GOOGLE_CONFIGURED = !!import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 export default function Signup() {
-  const { register } = useAuth()
+  const { signup, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
+
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,8 +23,8 @@ export default function Signup() {
     setError('')
     setLoading(true)
     try {
-      await register(form.name, form.email, form.password)
-      navigate('/account')
+      await signup(form)
+      navigate('/', { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -28,59 +32,88 @@ export default function Signup() {
     }
   }
 
-  return (
-    <div className="max-w-sm mx-auto px-6 py-20">
-      <h1 className="font-display text-4xl text-ink mb-8 tracking-wide text-center">CREATE ACCOUNT</h1>
+  async function handleGoogleSuccess(credentialResponse) {
+    setError('')
+    try {
+      await loginWithGoogle(credentialResponse.credential)
+      navigate('/', { replace: true })
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
-      <div className="mb-6">
-        <GoogleSignInButton onError={setError} />
+  return (
+    <div className="max-w-sm mx-auto px-6 py-24">
+      <SEO
+        title="Create an Account — BuxTech"
+        description="Create a free BuxTech account to check out faster and track your orders."
+        noindex
+      />
+      <h1 className="font-display text-3xl text-ink mb-8 tracking-wide text-center">
+        SIGN UP
+      </h1>
+
+      <div className="flex justify-center mb-6">
+        {GOOGLE_CONFIGURED ? (
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Google sign-in failed')}
+          />
+        ) : (
+          <div className="w-full text-center text-xs text-muted border border-border rounded px-4 py-3">
+            Google sign-in isn't set up yet
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-3 mb-6">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-muted text-xs">OR</span>
+        <span className="text-xs text-muted">OR</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
-          required
+          type="text"
           name="name"
-          placeholder="Full name"
+          required
           value={form.name}
           onChange={handleChange}
+          placeholder="Full name"
           className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
         />
         <input
-          required
           type="email"
           name="email"
-          placeholder="Email"
+          required
           value={form.email}
           onChange={handleChange}
+          placeholder="Email"
           className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
         />
         <input
-          required
           type="password"
           name="password"
-          placeholder="Password (min. 6 characters)"
+          required
+          minLength={8}
           value={form.password}
           onChange={handleChange}
+          placeholder="Password (min. 8 characters)"
           className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
         />
         {error && <p className="text-red-400 text-sm">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-cyan text-base font-semibold py-3 rounded shadow-glow disabled:opacity-50"
+          className="w-full bg-cyan text-base font-semibold py-3 rounded shadow-glow hover:shadow-glowStrong transition-shadow disabled:opacity-50"
         >
           {loading ? 'Creating account…' : 'Sign Up'}
         </button>
       </form>
 
-      <p className="text-muted text-sm text-center mt-6">
-        Already have an account? <Link to="/login" className="text-cyan hover:underline">Sign in</Link>
+      <p className="text-center text-sm text-muted mt-6">
+        Already have an account?{' '}
+        <Link to="/login" className="text-cyan hover:underline">Log in</Link>
       </p>
     </div>
   )

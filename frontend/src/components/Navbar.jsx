@@ -110,14 +110,6 @@ export default function Navbar() {
           </button>
 
           <Link
-            to={user ? '/account' : '/login'}
-            onClick={closeMenus}
-            className="hidden sm:flex items-center gap-2 border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan transition-colors whitespace-nowrap"
-          >
-            {user ? `Hi, ${user.name.split(' ')[0]}` : 'Sign In'}
-          </Link>
-
-          <Link
             to="/cart"
             onClick={closeMenus}
             className="relative flex items-center gap-2 border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan transition-colors whitespace-nowrap"
@@ -128,6 +120,14 @@ export default function Navbar() {
                 {itemCount}
               </span>
             )}
+          </Link>
+
+          <Link
+            to={user ? '/account' : '/login'}
+            onClick={closeMenus}
+            className="hidden sm:flex items-center gap-2 border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan transition-colors whitespace-nowrap"
+          >
+            {user ? user.name.split(' ')[0] : 'Log In'}
           </Link>
 
           {/* Mobile hamburger toggle */}
@@ -201,13 +201,11 @@ export default function Navbar() {
           </div>
 
           <NavLink to="/about" className={mobileLinkClass} onClick={closeMenus}>About</NavLink>
-          <NavLink to="/contact" className={mobileLinkClass} onClick={closeMenus}>Contact</NavLink>
-          <NavLink
-            to={user ? '/account' : '/login'}
-            className={`${mobileLinkClass({ isActive: false })} border-b-0`}
-            onClick={closeMenus}
-          >
-            {user ? `Hi, ${user.name.split(' ')[0]}` : 'Sign In'}
+          <NavLink to="/contact" className={mobileLinkClass} onClick={closeMenus}>
+            Contact
+          </NavLink>
+          <NavLink to={user ? '/account' : '/login'} className={`${mobileLinkClass({ isActive: false })} border-b-0`} onClick={closeMenus}>
+            {user ? user.name.split(' ')[0] : 'Log In'}
           </NavLink>
         </div>
       )}
