@@ -5,6 +5,7 @@ import productsRouter from './routes/products.js'
 import ordersRouter from './routes/orders.js'
 import paymentRouter from './routes/payment.js'
 import contactRouter from './routes/contact.js'
+import reviewsRouter from './routes/reviews.js'
 
 const app = express()
 
@@ -19,6 +20,7 @@ app.use('/api/products', productsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/payment', paymentRouter)
 app.use('/api/contact', contactRouter)
+app.use('/api/reviews', reviewsRouter)
 
 const PORT = process.env.PORT || 5000
 

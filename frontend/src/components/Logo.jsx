@@ -1,0 +1,24 @@
+export default function Logo({ size = 32 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect x="1" y="1" width="38" height="38" rx="8" fill="#12171F" stroke="#00D9FF" strokeWidth="1.5" />
+      {/* Stylized "B" built from circuit-like bars */}
+      <path
+        d="M13 10H21C23.7614 10 26 12.2386 26 15C26 17.7614 23.7614 20 21 20H13V10Z"
+        fill="#00D9FF"
+      />
+      <path
+        d="M13 20H22C24.7614 20 27 22.2386 27 25C27 27.7614 24.7614 30 22 30H13V20Z"
+        fill="#F5F7FA"
+      />
+      <circle cx="30" cy="10" r="1.5" fill="#00D9FF" />
+      <circle cx="30" cy="30" r="1.5" fill="#00D9FF" />
+    </svg>
+  )
+}

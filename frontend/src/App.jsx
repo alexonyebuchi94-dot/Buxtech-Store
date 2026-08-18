@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
+import LiveActivityToast from './components/LiveActivityToast.jsx'
 import Home from './pages/Home.jsx'
 import Shop from './pages/Shop.jsx'
 import ProductPage from './pages/ProductPage.jsx'
@@ -9,6 +10,13 @@ import Checkout from './pages/Checkout.jsx'
 import OrderConfirmation from './pages/OrderConfirmation.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
+import AdminLogin from './pages/AdminLogin.jsx'
+import AdminDashboard from './pages/AdminDashboard.jsx'
+import AdminProducts from './pages/AdminProducts.jsx'
+import PrivacyPolicy from './pages/legal/PrivacyPolicy.jsx'
+import ReturnsPolicy from './pages/legal/ReturnsPolicy.jsx'
+import TermsConditions from './pages/legal/TermsConditions.jsx'
+import Warranty from './pages/legal/Warranty.jsx'
 
 export default function App() {
   return (
@@ -24,9 +32,17 @@ export default function App() {
           <Route path="/order-confirmation" element={<OrderConfirmation />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/returns-policy" element={<ReturnsPolicy />} />
+          <Route path="/terms" element={<TermsConditions />} />
+          <Route path="/warranty" element={<Warranty />} />
         </Routes>
       </main>
       <Footer />
+      <LiveActivityToast />
     </div>
   )
 }

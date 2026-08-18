@@ -14,8 +14,8 @@ export default {
         muted: '#8B95A5',
       },
       fontFamily: {
-        display: ['"Bebas Neue"', 'sans-serif'],
-        body: ['"Space Grotesk"', 'sans-serif'],
+        display: ['"Orbitron"', 'sans-serif'],
+        body: ['"Inter"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {

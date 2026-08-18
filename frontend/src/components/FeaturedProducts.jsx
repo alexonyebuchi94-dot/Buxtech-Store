@@ -1,8 +1,17 @@
-import { products } from '../data/products.js'
+import { useEffect, useState } from 'react'
+import { fetchProducts } from '../api/products.js'
 import ProductCard from './ProductCard.jsx'
 
 export default function FeaturedProducts() {
-  const featured = products.filter((p) => p.featured)
+  const [featured, setFeatured] = useState([])
+
+  useEffect(() => {
+    fetchProducts()
+      .then((all) => setFeatured(all.filter((p) => p.featured).slice(0, 4)))
+      .catch(() => setFeatured([]))
+  }, [])
+
+  if (featured.length === 0) return null
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-20">

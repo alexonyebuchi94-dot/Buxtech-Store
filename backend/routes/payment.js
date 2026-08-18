@@ -1,6 +1,7 @@
 import express from 'express'
 import fetch from 'node-fetch'
 import { getOrder, setOrderReference, findOrderByReference, updateOrderStatus } from '../data/orderStore.js'
+import { sendOrderConfirmationEmail } from '../lib/email.js'
 
 const router = express.Router()
 
@@ -65,7 +66,11 @@ router.get('/verify/:reference', async (req, res) => {
 
     const order = findOrderByReference(reference)
     if (order) {
+      const alreadyPaid = order.status === 'paid'
       updateOrderStatus(order.id, success ? 'paid' : 'failed')
+      if (success && !alreadyPaid) {
+        sendOrderConfirmationEmail(order)
+      }
     }
 
     res.json({ success, order: order || null })

@@ -13,6 +13,12 @@ export function getOrder(id) {
   return orders.get(id)
 }
 
+export function getAllOrders() {
+  return [...orders.values()].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  )
+}
+
 export function updateOrderStatus(id, status) {
   const order = orders.get(id)
   if (!order) return null

@@ -1,15 +1,33 @@
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { products, categories } from '../data/products.js'
+import { categories } from '../data/products.js'
+import { fetchProducts } from '../api/products.js'
 import ProductCard from '../components/ProductCard.jsx'
 
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams()
   const activeCategory = searchParams.get('category') || 'all'
+  const searchQuery = searchParams.get('search') || ''
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const filtered =
-    activeCategory === 'all'
-      ? products
-      : products.filter((p) => p.category === activeCategory)
+  useEffect(() => {
+    setLoading(true)
+    fetchProducts(activeCategory === 'all' ? undefined : activeCategory)
+      .then(setProducts)
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false))
+  }, [activeCategory])
+
+  let filtered = products
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase()
+    filtered = filtered.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q)
+    )
+  }
 
   function setCategory(slug) {
     if (slug === 'all') {
@@ -23,6 +41,21 @@ export default function Shop() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-16">
       <h1 className="font-display text-4xl text-ink mb-8 tracking-wide">SHOP</h1>
+
+      {searchQuery && (
+        <div className="flex items-center gap-3 mb-6 text-sm text-muted">
+          <span>Results for "<span className="text-cyan">{searchQuery}</span>"</span>
+          <button
+            onClick={() => {
+              searchParams.delete('search')
+              setSearchParams(searchParams)
+            }}
+            className="text-cyan hover:underline"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-10">
         <button
@@ -50,7 +83,9 @@ export default function Shop() {
         ))}
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <p className="text-muted">Loading products…</p>
+      ) : filtered.length === 0 ? (
         <p className="text-muted">No products in this category yet.</p>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

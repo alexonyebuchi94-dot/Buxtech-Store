@@ -7,7 +7,21 @@ function formatNaira(amount) {
 }
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-const DELIVERY_FEE = 3000
+
+const NIGERIAN_STATES = [
+  'Lagos', 'Abuja (FCT)', 'Ogun', 'Oyo', 'Rivers', 'Kano', 'Kaduna', 'Enugu',
+  'Delta', 'Edo', 'Anambra', 'Imo', 'Abia', 'Akwa Ibom', 'Cross River',
+  'Osun', 'Ondo', 'Ekiti', 'Kwara', 'Plateau', 'Benue', 'Niger', 'Katsina',
+  'Bauchi', 'Borno', 'Sokoto', 'Kebbi', 'Zamfara', 'Jigawa', 'Yobe',
+  'Adamawa', 'Taraba', 'Gombe', 'Nasarawa', 'Kogi', 'Bayelsa', 'Ebonyi',
+]
+
+function getDeliveryFee(state) {
+  if (!state) return 3000
+  if (state === 'Lagos') return 2000
+  if (['Ogun', 'Oyo', 'Abuja (FCT)'].includes(state)) return 3500
+  return 5000
+}
 
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart()
@@ -23,7 +37,8 @@ export default function Checkout() {
     state: '',
   })
 
-  const total = subtotal + DELIVERY_FEE
+  const deliveryFee = getDeliveryFee(form.state)
+  const total = subtotal + deliveryFee
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -43,7 +58,7 @@ export default function Checkout() {
           customer: form,
           items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
           subtotal,
-          deliveryFee: DELIVERY_FEE,
+          deliveryFee,
           total,
         }),
       })
@@ -149,13 +164,23 @@ export default function Checkout() {
           </div>
           <div>
             <label className="text-sm text-muted block mb-1">State</label>
-            <input
+            <select
               required
               name="state"
               value={form.state}
               onChange={handleChange}
               className="w-full bg-surface border border-border rounded px-4 py-3 text-ink focus:border-cyan outline-none"
-            />
+            >
+              <option value="">Select state…</option>
+              {NIGERIAN_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            {form.state && (
+              <p className="text-xs text-cyan mt-1">
+                Delivery to {form.state}: {formatNaira(getDeliveryFee(form.state))}
+              </p>
+            )}
           </div>
         </div>
 
@@ -185,7 +210,7 @@ export default function Checkout() {
           </div>
           <div className="flex justify-between text-sm text-muted">
             <span>Delivery</span>
-            <span className="font-mono-price text-ink">{formatNaira(DELIVERY_FEE)}</span>
+            <span className="font-mono-price text-ink">{formatNaira(deliveryFee)}</span>
           </div>
           <div className="flex justify-between text-ink font-medium pt-2 border-t border-border">
             <span>Total</span>

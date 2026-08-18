@@ -9,7 +9,7 @@ html {
 body {
   background-color: #0A0E14;
   color: #F5F7FA;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 ::selection {
@@ -27,8 +27,9 @@ select:focus-visible {
 }
 
 .font-display {
-  font-family: 'Bebas Neue', sans-serif;
-  letter-spacing: 0.02em;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .font-mono-price {
@@ -77,6 +78,85 @@ select:focus-visible {
   100% { background-position: 200% 200%; }
 }
 
+/* Hero: circuit grid background */
+.circuit-grid {
+  background-image:
+    linear-gradient(rgba(0, 217, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 217, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 40%, transparent 90%);
+}
+
+/* Hero: drifting glow orbs */
+@keyframes drift1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(40px, -30px); }
+}
+@keyframes drift2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-30px, 40px); }
+}
+.orb-drift-1 { animation: drift1 12s ease-in-out infinite; }
+.orb-drift-2 { animation: drift2 14s ease-in-out infinite; }
+
+/* Hero: top scan line */
+@keyframes scan {
+  0% { transform: translateY(0); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: translateY(90vh); opacity: 0; }
+}
+.scan-line {
+  animation: scan 5s linear infinite;
+}
+
+/* Small pulsing status dot */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 217, 255, 0.5); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 6px rgba(0, 217, 255, 0); }
+}
+.pulse-dot { animation: pulseDot 2s ease-in-out infinite; }
+
+/* Glow pulse behind hero image */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.pulse-glow { animation: pulseGlow 4s ease-in-out infinite; }
+
+/* Slow float for hero product image */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.float-slow { animation: floatSlow 6s ease-in-out infinite; }
+
+/* Headline entrance */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal-up { animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Hero image bounces into place on load */
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.7) translateY(30px); }
+  60% { opacity: 1; transform: scale(1.05) translateY(-8px); }
+  80% { transform: scale(0.98) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.bounce-in { animation: bounceIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: 0.2s; }
+
+/* Glowing text */
+.text-glow {
+  text-shadow: 0 0 20px rgba(0, 217, 255, 0.6), 0 0 40px rgba(0, 217, 255, 0.3);
+}
+
+/* Product card cursor-follow tilt */
+.tilt-card {
+  transition: transform 0.15s ease-out;
+  transform-style: preserve-3d;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .glow-card:hover::before {
     animation: none;
@@ -84,5 +164,9 @@ select:focus-visible {
   }
   html {
     scroll-behavior: auto;
+  }
+  .orb-drift-1, .orb-drift-2, .scan-line, .pulse-dot,
+  .pulse-glow, .float-slow, .reveal-up {
+    animation: none;
   }
 }

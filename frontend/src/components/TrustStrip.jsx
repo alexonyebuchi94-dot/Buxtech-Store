@@ -1,8 +1,8 @@
 const items = [
+  { label: 'Original Products', detail: 'No fakes, ever' },
   { label: 'Fast Delivery', detail: 'Across Nigeria, tracked' },
-  { label: 'Secure Payment', detail: 'Paystack encrypted checkout' },
-  { label: 'Warranty', detail: 'On all electronics & appliances' },
-  { label: 'Real Support', detail: 'Talk to a human, not a bot' },
+  { label: 'Paystack Secured', detail: 'Encrypted checkout' },
+  { label: '7-Day Returns', detail: 'Faulty or wrong item' },
 ]
 
 export default function TrustStrip() {

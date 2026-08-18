@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useRef } from 'react'
 import { useCart } from '../context/CartContext.jsx'
 
 function formatNaira(amount) {
@@ -7,9 +8,32 @@ function formatNaira(amount) {
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart()
+  const cardRef = useRef(null)
+
+  function handleMouseMove(e) {
+    const card = cardRef.current
+    if (!card) return
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const rotateX = ((y - rect.height / 2) / rect.height) * -8
+    const rotateY = ((x - rect.width / 2) / rect.width) * 8
+    card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-3px)`
+  }
+
+  function handleMouseLeave() {
+    const card = cardRef.current
+    if (!card) return
+    card.style.transform = 'perspective(600px) rotateX(0) rotateY(0) translateY(0)'
+  }
 
   return (
-    <div className="glow-card flex flex-col">
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="glow-card tilt-card flex flex-col"
+    >
       <Link to={`/product/${product.id}`} className="block">
         <div className="aspect-square overflow-hidden bg-base">
           <img
