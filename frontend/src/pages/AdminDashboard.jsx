@@ -9,7 +9,9 @@ function formatNaira(amount) {
 
 const statusColor = {
   pending: 'text-muted border-border',
+  'pay-on-delivery': 'text-amber-400 border-amber-400/40',
   paid: 'text-cyan border-cyan/40',
+  delivered: 'text-green-400 border-green-400/40',
   failed: 'text-red-400 border-red-400/40',
 }
 
@@ -50,6 +52,20 @@ export default function AdminDashboard() {
   function logout() {
     sessionStorage.removeItem('buxtech_admin_key')
     navigate('/admin')
+  }
+
+  async function markAsPaid(orderId) {
+    try {
+      const res = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ status: 'paid' }),
+      })
+      if (!res.ok) throw new Error('Failed to update')
+      await fetchOrders()
+    } catch {
+      setError('Could not update order status')
+    }
   }
 
   const totalRevenue = orders
@@ -114,6 +130,11 @@ export default function AdminDashboard() {
                   <div className="text-muted text-xs mt-1">
                     {order.customer.address}, {order.customer.city}, {order.customer.state}
                   </div>
+                  {order.totalWeight > 0 && (
+                    <div className="text-muted text-xs mt-1">
+                      Package weight: <span className="text-ink">{order.totalWeight.toFixed(1)}kg</span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <span
@@ -121,9 +142,20 @@ export default function AdminDashboard() {
                       statusColor[order.status] || statusColor.pending
                     }`}
                   >
-                    {order.status}
+                    {order.status === 'pay-on-delivery' ? 'Pay on Delivery' : order.status}
                   </span>
+                  <div className="text-muted text-[11px] mt-1">
+                    {order.paymentMethod === 'pay-on-delivery' ? 'Pays on delivery' : 'Paid via Paystack'}
+                  </div>
                   <div className="font-mono-price text-cyan mt-2">{formatNaira(order.total)}</div>
+                  {order.status === 'pay-on-delivery' && (
+                    <button
+                      onClick={() => markAsPaid(order.id)}
+                      className="mt-2 text-xs border border-cyan/40 text-cyan rounded px-3 py-1 hover:bg-cyan/10"
+                    >
+                      Mark as Paid
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="border-t border-border pt-3 space-y-1">

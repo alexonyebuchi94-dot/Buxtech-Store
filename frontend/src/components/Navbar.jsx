@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { categories } from '../data/products.js'
 import Logo from './Logo.jsx'
+import InstallAppButton from './InstallAppButton.jsx'
 
 export default function Navbar() {
   const { itemCount } = useCart()
@@ -109,6 +110,8 @@ export default function Navbar() {
             </svg>
           </button>
 
+          <InstallAppButton className="hidden sm:inline-flex items-center border border-border rounded px-4 py-2 text-sm text-ink hover:border-cyan transition-colors whitespace-nowrap" />
+
           <Link
             to="/cart"
             onClick={closeMenus}
@@ -204,9 +207,12 @@ export default function Navbar() {
           <NavLink to="/contact" className={mobileLinkClass} onClick={closeMenus}>
             Contact
           </NavLink>
-          <NavLink to={user ? '/account' : '/login'} className={`${mobileLinkClass({ isActive: false })} border-b-0`} onClick={closeMenus}>
+          <NavLink to={user ? '/account' : '/login'} className={mobileLinkClass} onClick={closeMenus}>
             {user ? user.name.split(' ')[0] : 'Log In'}
           </NavLink>
+          <div className="pt-3 border-b-0">
+            <InstallAppButton className="w-full text-center border border-border rounded px-4 py-2.5 text-sm text-ink hover:border-cyan transition-colors" />
+          </div>
         </div>
       )}
     </header>

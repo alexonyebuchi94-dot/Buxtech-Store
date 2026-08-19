@@ -1,7 +1,8 @@
 import express from 'express'
 import { nanoid } from 'nanoid'
-import { createOrder, getOrder, getAllOrders } from '../data/orderStore.js'
+import { createOrder, getOrder, getAllOrders, updateOrderStatus } from '../data/orderStore.js'
 import { requireAdmin } from '../middleware/auth.js'
+import { sendOrderConfirmationEmail } from '../lib/email.js'
 
 const router = express.Router()
 
@@ -11,12 +12,15 @@ router.get('/admin/all', requireAdmin, (req, res) => {
 })
 
 // POST /api/orders — create a pending order before sending the customer to Paystack
+// (or, for pay-on-delivery, an already-confirmed order needing no online payment)
 router.post('/', (req, res) => {
-  const { customer, items, subtotal, deliveryFee, total } = req.body
+  const { customer, items, subtotal, deliveryFee, total, totalWeight, paymentMethod } = req.body
 
   if (!customer?.email || !customer?.name || !items?.length) {
     return res.status(400).json({ error: 'Missing required order details' })
   }
+
+  const method = paymentMethod === 'pay-on-delivery' ? 'pay-on-delivery' : 'paystack'
 
   const order = createOrder({
     id: nanoid(10),
@@ -25,11 +29,30 @@ router.post('/', (req, res) => {
     subtotal,
     deliveryFee,
     total,
-    status: 'pending',
+    totalWeight: totalWeight || 0,
+    paymentMethod: method,
+    status: method === 'pay-on-delivery' ? 'pay-on-delivery' : 'pending',
     createdAt: new Date().toISOString(),
   })
 
+  if (method === 'pay-on-delivery') {
+    sendOrderConfirmationEmail(order)
+  }
+
   res.status(201).json(order)
+})
+
+// PUT /api/orders/:id/status — admin updates an order's status
+// (e.g. marking a pay-on-delivery order as paid once cash is collected)
+router.put('/:id/status', requireAdmin, (req, res) => {
+  const { status } = req.body
+  const allowed = ['pending', 'pay-on-delivery', 'paid', 'failed', 'delivered']
+  if (!allowed.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' })
+  }
+  const order = updateOrderStatus(req.params.id, status)
+  if (!order) return res.status(404).json({ error: 'Order not found' })
+  res.json(order)
 })
 
 // GET /api/orders/:id

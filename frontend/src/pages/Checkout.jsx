@@ -16,18 +16,34 @@ const NIGERIAN_STATES = [
   'Adamawa', 'Taraba', 'Gombe', 'Nasarawa', 'Kogi', 'Bayelsa', 'Ebonyi',
 ]
 
-function getDeliveryFee(state) {
+// Delivery is by dispatch bike, so price scales with both distance (state,
+// as a proxy for how far the rider has to go) and weight (heavier loads
+// are slower/harder on a bike and some riders charge more for them).
+// Adjust these numbers to match what you actually pay your riders.
+const FREE_WEIGHT_KG = 2 // first 2kg included in the base fee
+const PER_KG_FEE = 400 // charged per kg above the free allowance
+const HEAVY_ORDER_KG = 15 // above this, flag that bike delivery may not be practical
+
+function getBaseFee(state) {
   if (!state) return 3000
-  if (state === 'Lagos') return 2000
-  if (['Ogun', 'Oyo', 'Abuja (FCT)'].includes(state)) return 3500
-  return 5000
+  if (state === 'Lagos') return 1800
+  if (['Ogun', 'Oyo', 'Abuja (FCT)'].includes(state)) return 3000
+  return 4500
+}
+
+function getDeliveryFee(state, weightKg = 0) {
+  const base = getBaseFee(state)
+  const extraKg = Math.max(0, weightKg - FREE_WEIGHT_KG)
+  const weightSurcharge = Math.ceil(extraKg) * PER_KG_FEE
+  return base + weightSurcharge
 }
 
 export default function Checkout() {
-  const { items, subtotal, clearCart } = useCart()
+  const { items, subtotal, totalWeight, clearCart } = useCart()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('paystack') // 'paystack' | 'pay-on-delivery'
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -37,7 +53,7 @@ export default function Checkout() {
     state: '',
   })
 
-  const deliveryFee = getDeliveryFee(form.state)
+  const deliveryFee = getDeliveryFee(form.state, totalWeight)
   const total = subtotal + deliveryFee
 
   function handleChange(e) {
@@ -60,10 +76,19 @@ export default function Checkout() {
           subtotal,
           deliveryFee,
           total,
+          totalWeight,
+          paymentMethod,
         }),
       })
       const order = await orderRes.json()
       if (!orderRes.ok) throw new Error(order.error || 'Could not create order')
+
+      // Pay on delivery — no online payment needed, order is confirmed immediately
+      if (paymentMethod === 'pay-on-delivery') {
+        clearCart()
+        navigate(`/order-confirmation?orderId=${order.id}&pod=1`)
+        return
+      }
 
       // 2. Initialize Paystack payment for this order
       const payRes = await fetch(`${API_BASE}/api/payment/initialize`, {
@@ -178,9 +203,41 @@ export default function Checkout() {
             </select>
             {form.state && (
               <p className="text-xs text-cyan mt-1">
-                Delivery to {form.state}: {formatNaira(getDeliveryFee(form.state))}
+                Delivery to {form.state}: {formatNaira(getDeliveryFee(form.state, totalWeight))}
+                {totalWeight > FREE_WEIGHT_KG && ` (includes ${totalWeight.toFixed(1)}kg surcharge)`}
               </p>
             )}
+            {totalWeight > HEAVY_ORDER_KG && (
+              <p className="text-xs text-amber-400 mt-1">
+                This order is {totalWeight.toFixed(1)}kg — heavier than a bike can comfortably carry. We may contact you to confirm delivery arrangements before dispatch.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm text-muted block mb-2">How would you like to pay?</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('paystack')}
+              className={`text-left border rounded-lg px-4 py-3 transition-colors ${
+                paymentMethod === 'paystack' ? 'border-cyan bg-cyan/10' : 'border-border hover:border-muted'
+              }`}
+            >
+              <div className="text-ink font-medium text-sm">Pay Now</div>
+              <div className="text-muted text-xs mt-0.5">Card, bank transfer, or USSD via Paystack</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('pay-on-delivery')}
+              className={`text-left border rounded-lg px-4 py-3 transition-colors ${
+                paymentMethod === 'pay-on-delivery' ? 'border-cyan bg-cyan/10' : 'border-border hover:border-muted'
+              }`}
+            >
+              <div className="text-ink font-medium text-sm">Pay on Delivery</div>
+              <div className="text-muted text-xs mt-0.5">Pay cash or transfer when it arrives</div>
+            </button>
           </div>
         </div>
 
@@ -189,7 +246,9 @@ export default function Checkout() {
           disabled={loading}
           className="w-full bg-cyan text-base font-semibold py-4 rounded shadow-glow hover:shadow-glowStrong transition-shadow disabled:opacity-50"
         >
-          {loading ? 'Redirecting to Paystack…' : `Pay ${formatNaira(total)}`}
+          {loading
+            ? paymentMethod === 'paystack' ? 'Redirecting to Paystack…' : 'Placing order…'
+            : paymentMethod === 'paystack' ? `Pay ${formatNaira(total)}` : `Place Order — Pay ${formatNaira(total)} on Delivery`}
         </button>
       </form>
 
@@ -209,7 +268,7 @@ export default function Checkout() {
             <span className="font-mono-price text-ink">{formatNaira(subtotal)}</span>
           </div>
           <div className="flex justify-between text-sm text-muted">
-            <span>Delivery</span>
+            <span>Delivery {totalWeight > 0 && `(${totalWeight.toFixed(1)}kg)`}</span>
             <span className="font-mono-price text-ink">{formatNaira(deliveryFee)}</span>
           </div>
           <div className="flex justify-between text-ink font-medium pt-2 border-t border-border">

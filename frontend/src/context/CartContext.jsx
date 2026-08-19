@@ -22,6 +22,7 @@ export function CartProvider({ children }) {
           name: product.name,
           price: product.price,
           image: product.image,
+          weight: product.weight ?? null,
           variant,
           qty,
         },
@@ -55,9 +56,14 @@ export function CartProvider({ children }) {
     [items]
   )
 
+  const totalWeight = useMemo(
+    () => items.reduce((sum, i) => sum + (i.weight || 0) * i.qty, 0),
+    [items]
+  )
+
   return (
     <CartContext.Provider
-      value={{ items, addToCart, updateQty, removeFromCart, clearCart, subtotal, itemCount }}
+      value={{ items, addToCart, updateQty, removeFromCart, clearCart, subtotal, itemCount, totalWeight }}
     >
       {children}
     </CartContext.Provider>
