@@ -57,3 +57,53 @@ export async function sendOrderConfirmationEmail(order) {
     console.error('[email] Failed to send order confirmation:', err.message)
   }
 }
+
+const STATUS_SUBJECT = {
+  shipped: 'Your order has shipped',
+  delivered: 'Your order has been delivered',
+  cancelled: 'Your order was cancelled',
+  paid: 'Payment received',
+}
+
+const STATUS_MESSAGE = {
+  shipped: "Good news — your order is on its way! A rider will be delivering it to the address you provided.",
+  delivered: "Your order has been marked as delivered. We hope you love it! If anything's wrong, just reply to this email.",
+  cancelled: "Your order has been cancelled. If you were charged and weren't expecting this, please contact us right away.",
+  paid: "We've confirmed your payment for this order — thanks!",
+}
+
+// Sends a short update email when an order's status changes (shipped,
+// delivered, cancelled, paid). Silently skipped for statuses with no
+// customer-facing message (e.g. 'pending', 'seen').
+export async function sendOrderStatusEmail(order, status) {
+  const subject = STATUS_SUBJECT[status]
+  const message = STATUS_MESSAGE[status]
+  if (!subject || !message) return
+
+  if (!resend) {
+    console.log(`[email] RESEND_API_KEY not set — skipping "${status}" status email`)
+    return
+  }
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+      <h2 style="color:#0A0E14;">${subject} — BuxTech</h2>
+      <p>Hi ${order.customer.name},</p>
+      <p>${message}</p>
+      <p style="color:#666;font-size:14px;">Order #${order.id}</p>
+      <p style="color:#666;font-size:14px;">Questions? Reply to this email or reach us at buxtech27@gmail.com / 0812 359 0484.</p>
+      <p style="color:#999;font-size:12px;margin-top:24px;">— BuxTech</p>
+    </div>
+  `
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: order.customer.email,
+      subject: `${subject} — #${order.id}`,
+      html,
+    })
+  } catch (err) {
+    console.error(`[email] Failed to send "${status}" status email:`, err.message)
+  }
+}

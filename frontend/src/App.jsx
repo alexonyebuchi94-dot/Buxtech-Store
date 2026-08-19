@@ -12,6 +12,8 @@ import Contact from './pages/Contact.jsx'
 import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Account from './pages/Account.jsx'
+import Orders from './pages/Orders.jsx'
+import Inbox from './pages/Inbox.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminProducts from './pages/AdminProducts.jsx'
@@ -36,6 +38,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/inbox" element={<Inbox />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/returns-policy" element={<ReturnsPolicy />} />
         <Route path="/terms" element={<TermsConditions />} />

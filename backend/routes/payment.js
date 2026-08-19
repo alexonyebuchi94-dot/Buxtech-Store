@@ -15,7 +15,7 @@ router.post('/initialize', async (req, res) => {
     return res.status(400).json({ error: 'Missing email, amount, or orderId' })
   }
 
-  const order = getOrder(orderId)
+  const order = await getOrder(orderId)
   if (!order) return res.status(404).json({ error: 'Order not found' })
 
   try {
@@ -40,7 +40,7 @@ router.post('/initialize', async (req, res) => {
       return res.status(502).json({ error: data.message || 'Paystack initialization failed' })
     }
 
-    setOrderReference(orderId, data.data.reference)
+    await setOrderReference(orderId, data.data.reference)
 
     res.json({
       authorizationUrl: data.data.authorization_url,
@@ -64,16 +64,17 @@ router.get('/verify/:reference', async (req, res) => {
 
     const success = data.status && data.data?.status === 'success'
 
-    const order = findOrderByReference(reference)
+    const order = await findOrderByReference(reference)
+    let updatedOrder = order
     if (order) {
       const alreadyPaid = order.status === 'paid'
-      updateOrderStatus(order.id, success ? 'paid' : 'failed')
+      updatedOrder = await updateOrderStatus(order.id, success ? 'paid' : 'failed')
       if (success && !alreadyPaid) {
-        sendOrderConfirmationEmail(order)
+        sendOrderConfirmationEmail(updatedOrder)
       }
     }
 
-    res.json({ success, order: order || null })
+    res.json({ success, order: updatedOrder || null })
   } catch (err) {
     console.error('Paystack verify error:', err)
     res.status(500).json({ error: 'Could not verify payment' })

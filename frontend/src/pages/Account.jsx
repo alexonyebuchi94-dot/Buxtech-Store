@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import SEO from '../components/SEO.jsx'
 
@@ -25,6 +25,24 @@ export default function Account() {
         <p className="text-ink font-semibold">{user.name}</p>
         <p className="text-muted text-sm">{user.email}</p>
       </div>
+
+      <div className="space-y-3 mb-6">
+        <Link
+          to="/orders"
+          className="flex items-center justify-between border border-border rounded-lg px-4 py-3 text-sm text-ink hover:border-cyan transition-colors"
+        >
+          My Orders
+          <span className="text-muted">→</span>
+        </Link>
+        <Link
+          to="/inbox"
+          className="flex items-center justify-between border border-border rounded-lg px-4 py-3 text-sm text-ink hover:border-cyan transition-colors"
+        >
+          Inbox
+          <span className="text-muted">→</span>
+        </Link>
+      </div>
+
       <button
         onClick={() => {
           logout()

@@ -1,10 +1,14 @@
 import { nanoid } from 'nanoid'
+import Product from '../models/Product.js'
+import { isDBConnected } from '../lib/db.js'
 
-// In-memory product store, seeded with starter catalog.
-// Replace with a real database before this matters for real inventory —
-// this resets whenever the server restarts (Render free tier sleeps/restarts periodically).
+// Works two ways:
+//  - MONGODB_URI set + connected -> products persist permanently in MongoDB Atlas.
+//  - not set -> falls back to an in-memory store seeded with starter products,
+//    but everything resets whenever the server restarts.
+// Add MONGODB_URI in Render to switch this on (same one used for accounts/orders).
 
-const products = new Map()
+const memProducts = new Map()
 
 const seed = [
   { name: 'Digital Air Fryer 5.5L', category: 'kitchen-appliances', price: 45000, stock: 5, image: 'https://images.unsplash.com/photo-1648301037182-9dd1ad3c4d90?w=800', description: 'Oil-free frying, digital touch panel, 8 preset programs, 5.5L family-size basket.' },
@@ -21,46 +25,76 @@ const seed = [
   { name: 'Wireless Ergonomic Mouse', category: 'laptop-desktop-gadgets', price: 13000, stock: 6, image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800', description: 'Silent clicks, 2.4GHz + Bluetooth dual mode, rechargeable.' },
 ]
 
-seed.forEach((p, i) => {
-  const id = nanoid(8)
-  const featuredIndexes = [0, 1, 5, 6, 8, 9] // matches original hand-picked featured items
-  const { image, ...rest } = p
-  products.set(id, {
-    id,
-    featured: featuredIndexes.includes(i),
-    images: [image],
-    keywords: [],
-    weight: null, // kg
-    sku: '',
-    brand: '',
-    keyFeatures: [],
-    ...rest,
+function buildSeedProducts() {
+  const featuredIndexes = [0, 1, 5, 6, 8, 9]
+  return seed.map((p, i) => {
+    const id = nanoid(8)
+    const { image, ...rest } = p
+    return {
+      id,
+      featured: featuredIndexes.includes(i),
+      images: [image],
+      keywords: [],
+      weight: null,
+      sku: '',
+      brand: '',
+      keyFeatures: [],
+      ...rest,
+    }
   })
-})
-
-export function getAllProducts() {
-  return [...products.values()]
 }
 
-export function getProduct(id) {
-  return products.get(id)
+// In-memory fallback is always seeded immediately so the site works
+// out of the box even with no database configured.
+buildSeedProducts().forEach((p) => memProducts.set(p.id, p))
+
+// Called once after a successful MongoDB connection — seeds the starter
+// catalog into the real database, but only if it's empty (won't overwrite
+// products you've already added or edited).
+export async function seedProductsIfEmpty() {
+  if (!isDBConnected()) return
+  const count = await Product.countDocuments()
+  if (count > 0) return
+  await Product.insertMany(buildSeedProducts())
+  console.log('[db] Seeded starter product catalog into MongoDB')
 }
 
-export function createProduct(data) {
+export async function getAllProducts() {
+  if (isDBConnected()) return Product.find().lean()
+  return [...memProducts.values()]
+}
+
+export async function getProduct(id) {
+  if (isDBConnected()) return Product.findOne({ id }).lean()
+  return memProducts.get(id) || null
+}
+
+export async function createProduct(data) {
   const id = nanoid(8)
   const product = { id, featured: false, ...data }
-  products.set(id, product)
+  if (isDBConnected()) {
+    const created = await Product.create(product)
+    return created.toObject()
+  }
+  memProducts.set(id, product)
   return product
 }
 
-export function updateProduct(id, data) {
-  const existing = products.get(id)
+export async function updateProduct(id, data) {
+  if (isDBConnected()) {
+    return Product.findOneAndUpdate({ id }, { $set: data }, { new: true }).lean()
+  }
+  const existing = memProducts.get(id)
   if (!existing) return null
   const updated = { ...existing, ...data, id }
-  products.set(id, updated)
+  memProducts.set(id, updated)
   return updated
 }
 
-export function deleteProduct(id) {
-  return products.delete(id)
+export async function deleteProduct(id) {
+  if (isDBConnected()) {
+    const result = await Product.deleteOne({ id })
+    return result.deletedCount > 0
+  }
+  return memProducts.delete(id)
 }

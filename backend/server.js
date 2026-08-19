@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { connectDB } from './lib/db.js'
+import { seedProductsIfEmpty } from './data/productStore.js'
 import productsRouter from './routes/products.js'
 import ordersRouter from './routes/orders.js'
 import paymentRouter from './routes/payment.js'
@@ -27,8 +28,11 @@ app.use('/api/auth', authRouter)
 
 const PORT = process.env.PORT || 5000
 
-connectDB().finally(() => {
-  app.listen(PORT, () => {
-    console.log(`BuxTech backend running on port ${PORT}`)
+connectDB()
+  .then(() => seedProductsIfEmpty())
+  .catch((err) => console.error('[startup] Product seeding failed:', err.message))
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`BuxTech backend running on port ${PORT}`)
+    })
   })
-})

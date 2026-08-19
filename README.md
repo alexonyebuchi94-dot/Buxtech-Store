@@ -45,13 +45,13 @@ Runs on http://localhost:5173
 Customers can now create an account with email/password, or sign in with
 Google. This needs two things set up:
 
-**1. MongoDB Atlas (so accounts persist)**
+**1. MongoDB Atlas (so accounts, orders, and products persist)**
 - Create a free cluster at https://www.mongodb.com/atlas — the free tier is enough
 - Database Access → add a database user with a password
 - Network Access → allow access from anywhere (`0.0.0.0/0`) so Render can connect
 - Get your connection string (Connect → Drivers) and put it in `backend/.env` as `MONGODB_URI`
 - If `MONGODB_URI` is left unset, signup/login still work for local testing, but
-  accounts are stored in memory and disappear whenever the server restarts —
+  accounts, orders, and products are stored in memory and disappear whenever the server restarts —
   don't ship to real customers without this set.
 
 **2. JWT secret (signs customer login sessions)**
@@ -106,12 +106,32 @@ Vercel domain so Paystack redirects customers back to the right place.
 
 ## Where to go next
 
-- **Real inventory**: replace the placeholder items in `frontend/src/data/products.js`
-  and `backend/data/products.js` with your actual stock, images, and prices.
-- **Real database**: orders currently live in memory on the backend
-  (`backend/data/orderStore.js`) and reset on restart — swap in Postgres or
-  MongoDB before taking real orders.
-- **Product images**: currently pulling placeholder photos from Unsplash —
-  swap in real product photography.
-- **Admin view**: no admin panel yet for managing orders/stock — worth
-  building once you're live.
+- **Real inventory**: replace the placeholder items (added via Admin → Manage Products)
+  with your actual stock, images, and prices — once MongoDB is connected, edits here
+  are permanent.
+- **Real product photos**: the starter catalog uses placeholder Unsplash photos —
+  swap in your own product photography via the admin panel's photo uploader.
+
+## Saved vs. backed up — these are different things
+
+Everything (accounts, orders, products, reviews) now **saves permanently** to
+MongoDB Atlas instead of disappearing on server restart. That solves data loss
+from restarts/redeploys.
+
+It does **not** protect you from: accidentally deleting something yourself,
+a bug wiping data, or MongoDB's servers having an outage. That protection is
+called a **backup** — a separate copy of your data you could restore from.
+
+MongoDB Atlas's **free tier (M0) does not include automatic backups.** If you
+want real backup coverage, you have two options:
+
+1. **Upgrade to an Atlas paid tier** (M10+, roughly $9+/month) — turns on
+   Atlas's built-in continuous backups automatically, no extra setup.
+2. **Manual exports on the free tier** — periodically run `mongodump` (or use
+   Atlas's "Export" tool in the dashboard) to download a copy of your database
+   to your own computer or cloud storage. This is free, but only as current as
+   your last manual export — nothing automatic.
+
+For a small store just starting out, manual exports every so often are a
+reasonable middle ground. Once you're taking real, high-volume orders,
+upgrading for automatic backups is worth the cost.
