@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/dashboard
+Disallow: /admin/products
+
+Sitemap: https://buxtech-store.vercel.app/sitemap.xml
